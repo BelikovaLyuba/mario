@@ -87,6 +87,9 @@ def start_screen():
 tile_images = {'wall': load_image('box.png'), 'empty': load_image('grass.png')}
 player_image = load_image('mar.png', -1)
 
+tile_images = {'wall': load_image('box.png'), 'empty': load_image('grass.png')}
+player_image = load_image('mar.png', -1)
+
 tile_width = tile_height = 50
 
 
@@ -104,20 +107,41 @@ class Player(pygame.sprite.Sprite):
         self.rect = self.image.get_rect().move(tile_width * pos_x + 15, tile_height * pos_y + 5)
 
     def update(self, x, y):
-        if 0 <= self.rect.y + y < height and 0 <= self.rect.x + x < width and \
-                level_map[(self.rect.y + y) // tile_height][(self.rect.x + x) // tile_width] in ('.', '@'):
+        if 0 <= self.rect.y + y - shift[1] < level_y * tile_height and \
+            0 <= self.rect.x + x - shift[0] < level_x * tile_width and \
+                level_map[(self.rect.y + y - shift[1]) // tile_height][(self.rect.x + x - shift[0])
+                                                                       // tile_width] in ('.', '@'):
             self.rect = self.rect.move(x, y)
 
 
+class Camera:
+    def __init__(self):
+        self.dx = 0
+        self.dy = 0
+
+    def apply(self, obj):
+        obj.rect.x += self.dx
+        obj.rect.y += self.dy
+
+    def update(self, target):
+        global shift
+        self.dx = -(target.rect.x + target.rect.w // 2 - width // 2)
+        self.dy = -(target.rect.y + target.rect.h // 2 - height // 2)
+        shift = (shift[0] + self.dx, shift[1] + self.dy)
+
+
+camera = Camera()
+shift = (0, 0)
+clock = pygame.time.Clock()
 start_screen()
 
 all_sprites = pygame.sprite.Group()
 tiles_group = pygame.sprite.Group()
 player_group = pygame.sprite.Group()
 
+level_map = load_level('map.txt')
+player, level_x, level_y = generate_level(level_map)
 
-level_map = None
-player, level_x, level_y = generate_level(load_level('map.txt'))
 run = True
 while run:
     for event in pygame.event.get():
@@ -133,6 +157,9 @@ while run:
         if key[pygame.K_RIGHT]:
             player.update(tile_width, 0)
     screen.fill((0, 0, 0))
+    camera.update(player)
+    for sprite in all_sprites:
+        camera.apply(sprite)
     tiles_group.draw(screen)
     player_group.draw(screen)
     pygame.display.flip()
