@@ -47,7 +47,7 @@ def generate_level(level):
             elif level[y][x] == '@':
                 Tile('empty', x, y)
                 new_player = Player(x, y)
-    return new_player, x, y
+    return new_player, x + 1, y + 1
 
 
 def terminate():
@@ -107,8 +107,8 @@ class Player(pygame.sprite.Sprite):
         self.rect = self.image.get_rect().move(tile_width * pos_x + 15, tile_height * pos_y + 5)
 
     def update(self, x, y):
-        if 0 <= self.rect.y + y - shift[1] < level_y * tile_height and \
-            0 <= self.rect.x + x - shift[0] < level_x * tile_width and \
+        if 0 <= self.rect.y + y - shift[1] <= level_y * tile_height and \
+            0 <= self.rect.x + x - shift[0] <= level_x * tile_width and \
                 level_map[(self.rect.y + y - shift[1]) // tile_height][(self.rect.x + x - shift[0])
                                                                        // tile_width] in ('.', '@'):
             self.rect = self.rect.move(x, y)
